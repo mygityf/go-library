@@ -79,8 +79,30 @@ func (q *Queue) Len() int {
 	return q.list.Len()
 }
 
-func (q *Queue) Empty() bool {
+func (q *Queue) IsEmpty() bool {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	return q.list.Len() == 0
+}
+
+// visit
+func (q *Queue) Visit(action func(ele *list.Element)) error {
+	if action == nil {
+		return nil
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	for e := q.list.Front(); e != nil; e = e.Next() {
+		action(e)
+	}
+	return nil
+}
+
+// remove elements
+func (q *Queue) Remove(eles []*list.Element) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	for _, ele := range eles {
+		q.list.Remove(ele)
+	}
 }
