@@ -1,3 +1,3 @@
-module go-library
+module github.com/mygityf/go-library
 
 go 1.17
