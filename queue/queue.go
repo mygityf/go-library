@@ -5,32 +5,35 @@ import (
 	"sync"
 )
 
-type Queue struct {
+// queue
+type queueImpl struct {
 	list *list.List
-	mu   *sync.RWMutex
+	mu   sync.RWMutex
 }
 
-func NewQueuePtr() *Queue {
-	list := list.New()
+// NewQueuePtr new
+func NewQueuePtr() *queueImpl {
 	return &Queue{
-		list: list,
-		mu:   &sync.RWMutex{},
+		list: list.New(),
 	}
 }
 
-func (q *Queue) PushFront(value interface{}) {
+// PushFront push front
+func (q *queueImpl) PushFront(value interface{}) {
 	q.mu.Lock()
 	q.list.PushFront(value)
 	q.mu.Unlock()
 }
 
-func (q *Queue) PushBack(value interface{}) {
+// PushBack push back
+func (q *queueImpl) PushBack(value interface{}) {
 	q.mu.Lock()
 	q.list.PushBack(value)
 	q.mu.Unlock()
 }
 
-func (q *Queue) PopFront() interface{} {
+// PopFront pop front
+func (q *queueImpl) PopFront() interface{} {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	e := q.list.Front()
@@ -41,7 +44,8 @@ func (q *Queue) PopFront() interface{} {
 	return nil
 }
 
-func (q *Queue) PopBack() interface{} {
+// PopBack pop back
+func (q *queueImpl) PopBack() interface{} {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	e := q.list.Front()
@@ -52,7 +56,8 @@ func (q *Queue) PopBack() interface{} {
 	return nil
 }
 
-func (q *Queue) PeakFront() interface{} {
+// PeakFront peak front
+func (q *queueImpl) PeakFront() interface{} {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	e := q.list.Front()
@@ -63,7 +68,8 @@ func (q *Queue) PeakFront() interface{} {
 	return nil
 }
 
-func (q *Queue) PeakBack() interface{} {
+// PeakBack of queue
+func (q *queueImpl) PeakBack() interface{} {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	e := q.list.Back()
@@ -73,36 +79,39 @@ func (q *Queue) PeakBack() interface{} {
 
 	return nil
 }
-func (q *Queue) Len() int {
+
+// Len of queue
+func (q *queueImpl) Len() int {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	return q.list.Len()
 }
 
-func (q *Queue) IsEmpty() bool {
+// IsEmpty of queue
+func (q *queueImpl) IsEmpty() bool {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	return q.list.Len() == 0
 }
 
-// visit
-func (q *Queue) Visit(action func(ele *list.Element)) error {
+// Visit by action
+func (q *queueImpl) Visit(action func(ele *list.Element)) {
 	if action == nil {
-		return nil
+		return
 	}
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	for e := q.list.Front(); e != nil; e = e.Next() {
 		action(e)
 	}
-	return nil
+	return
 }
 
-// remove elements
-func (q *Queue) Remove(eles []*list.Element) {
+// Remove elements
+func (q *queueImpl) Remove(elements []*list.Element) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	for _, ele := range eles {
-		q.list.Remove(ele)
+	for _, element:= range elements {
+		q.list.Remove(element)
 	}
 }
