@@ -30,6 +30,13 @@ func Sha256(s string) string {
 	return hex.EncodeToString(o.Sum(nil))
 }
 
+// Sha384
+func Sha384(s string) string {
+	o := sha512.New384()
+	o.Write([]byte(s))
+	return hex.EncodeToString(o.Sum(nil))
+}
+
 // Sha512
 func Sha512(s string) string {
 	o := sha512.New()
