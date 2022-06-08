@@ -13,7 +13,7 @@ type queueImpl struct {
 
 // NewQueuePtr new
 func NewQueuePtr() *queueImpl {
-	return &Queue{
+	return &queueImpl{
 		list: list.New(),
 	}
 }
