@@ -1,6 +1,13 @@
 package quit
 
-import "sync"
+import (
+	"fmt"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
+	"time"
+)
 
 var (
 	gQuitEvent *QuitEvent
@@ -12,7 +19,7 @@ func init() {
 	gQuitEvent = NewQuitEvent()
 }
 
-// GetQuitEvent 获取一个安全退出处理单例
+// GetQuitEvent get sigleton quit event
 func GetQuitEvent() *QuitEvent {
 	once.Do(func() {
 		if gQuitEvent == nil {
@@ -22,7 +29,7 @@ func GetQuitEvent() *QuitEvent {
 	return gQuitEvent
 }
 
-// QuitEvent 安全退出处理器
+// QuitEvent quit event struct
 type QuitEvent struct {
 	*Event
 	// counts active goroutines for GracefulStop
@@ -55,4 +62,24 @@ func (q *QuitEvent) WaitGoroutines() {
 func (q *QuitEvent) GracefulStop() {
 	q.Fire()
 	q.WaitGoroutines()
+}
+
+// SignalHandler stop signal handle
+func SignalHandler() {
+	shutdownHook := make(chan os.Signal, 1)
+	signal.Notify(shutdownHook,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT,
+		os.Interrupt)
+	localPid := os.Getpid()
+	sig := <-shutdownHook
+
+	fmt.Printf("caught sig exit sig:%v,localPid:%v", sig, localPid)
+	go func() {
+		GetQuitEvent().GracefulStop()
+	}()
+	// wait 3 second for quit event graceful stop.
+	time.Sleep(3 * time.Second)
+	os.Exit(0)
 }
