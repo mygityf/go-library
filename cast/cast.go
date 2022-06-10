@@ -1,6 +1,7 @@
 package cast
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -167,6 +168,7 @@ func ToFloat64(data interface{}) (res float64) {
 	return
 }
 
+
 func ToString(data interface{}) (res string) {
 	switch v := data.(type) {
 	case bool:
@@ -185,8 +187,17 @@ func ToString(data interface{}) (res string) {
 		res = v
 	case []byte:
 		res = string(v)
+	case error:
+		if v != nil {
+			res = v.Error()
+		}
 	default:
-		res = fmt.Sprintf("%v", v)
+		if stringer, ok := data.(fmt.Stringer); ok {
+			res = stringer.String()
+		} else {
+			js, _ := json.Marshal(data)
+			res = string(js)
+		}
 	}
 	return
 }
