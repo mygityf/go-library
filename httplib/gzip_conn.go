@@ -10,7 +10,7 @@ type gzipConn struct {
 	*gzip.Writer
 }
 
-// New
+// NewGzipConn create gzip conn
 func NewGzipConn(conn net.Conn) *gzipConn {
 	return &gzipConn{
 		Conn:   conn,
@@ -18,7 +18,7 @@ func NewGzipConn(conn net.Conn) *gzipConn {
 	}
 }
 
-// Write
+// Write data to conn
 func (gc gzipConn) Write(b []byte) (int, error) {
 	n, err := gc.Writer.Write(b)
 	if err != nil {
@@ -28,7 +28,7 @@ func (gc gzipConn) Write(b []byte) (int, error) {
 	return n, gc.Writer.Flush()
 }
 
-// Close
+// Close conn
 func (gc gzipConn) Close() error {
 	err := gc.Writer.Close()
 	if err != nil {

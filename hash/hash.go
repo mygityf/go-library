@@ -1,6 +1,5 @@
 package hash
 
-
 import (
 	"crypto/md5"
 	"crypto/sha1"
@@ -50,4 +49,3 @@ func Md5(s string) string {
 	o.Write([]byte(s))
 	return hex.EncodeToString(o.Sum(nil))
 }
-
