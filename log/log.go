@@ -28,14 +28,18 @@ func NewConsoleLoggerImpl() *consoleLoggerImpl {
 
 // Write to stdout
 func (c *consoleLoggerImpl) Write(ctx context.Context, level Level, row string) {
-	fmt.Println(ctx, level.String(), row)
+	fmt.Println(ctx, level.CapitalString(), row)
 }
 
+// Close close
+func (c *consoleLoggerImpl) Close() {}
+
 type logChain struct {
-	ctx     context.Context
-	lines   []string
-	message string
-	level   Level
+	ctx      context.Context
+	lines    []string
+	funcName string
+	message  string
+	level    Level
 }
 
 // Any log any type message
@@ -63,7 +67,7 @@ func (l *logChain) Error(err error) *logChain {
 
 // Line log out
 func (l *logChain) Line() {
-	message := l.message + "; " + strings.Join(l.lines, ",")
+	message := "[" + l.funcName + "] " + l.message + "; " + strings.Join(l.lines, ",")
 	if InStdoutTestMode {
 		fmt.Println(message)
 		return
@@ -119,45 +123,98 @@ func GetFunction(skip int) string {
 
 // Debug log.Debug("xxxx).Ctx(ctx).Line()
 func Debug(msg string) *logChain {
-	fnName := GetFunction(2)
 	return &logChain{
-		level:   DebugLevel,
-		message: fmt.Sprintf("[%s]: %s", fnName, msg),
+		level:    DebugLevel,
+		funcName: GetFunction(2),
+		message:  msg,
 	}
 }
 
 // Info log.Info("xxxx).Ctx(ctx).Line()
 func Info(msg string) *logChain {
-	fnName := GetFunction(2)
 	return &logChain{
-		level:   InfoLevel,
-		message: fmt.Sprintf("[%s]: %s", fnName, msg),
+		level:    InfoLevel,
+		funcName: GetFunction(2),
+		message:  msg,
 	}
 }
 
 // Warn log.Warn("xxxx).Ctx(ctx).Line()
 func Warn(msg string) *logChain {
-	fnName := GetFunction(2)
 	return &logChain{
-		level:   WarnLevel,
-		message: fmt.Sprintf("[%s]: %s", fnName, msg),
+		level:    WarnLevel,
+		funcName: GetFunction(2),
+		message:  msg,
 	}
 }
 
 // Err log.Err("xxxx).Ctx(ctx).Error(err).Line()
 func Err(msg string) *logChain {
-	fnName := GetFunction(2)
 	return &logChain{
-		level:   ErrorLevel,
-		message: fmt.Sprintf("[%s]: %s", fnName, msg),
+		level:    ErrorLevel,
+		funcName: GetFunction(2),
+		message:  msg,
 	}
 }
 
 // Fatal log.Fatal("xxxx).Ctx(ctx).Line()
 func Fatal(msg string) *logChain {
-	fnName := GetFunction(2)
 	return &logChain{
-		level:   FatalLevel,
-		message: fmt.Sprintf("[%s]: %s", fnName, msg),
+		level:    FatalLevel,
+		funcName: GetFunction(2),
+		message:  msg,
+	}
+}
+
+func formatLog(format string, args ...interface{}) string {
+	if format != "" {
+		return fmt.Sprintf(format, args...)
+	} else {
+		return fmt.Sprint(args...)
+	}
+}
+
+// Debugf log.Debugf("xxxx-%v", "x").Ctx(ctx).Line()
+func Debugf(fmt string, args ...interface{}) *logChain {
+	return &logChain{
+		level:    DebugLevel,
+		funcName: GetFunction(2),
+		message:  formatLog(fmt, args...),
+	}
+}
+
+// Infof log.Infof("xxxx-%v", "x").Ctx(ctx).Line()
+func Infof(fmt string, args ...interface{}) *logChain {
+	return &logChain{
+		level:    InfoLevel,
+		funcName: GetFunction(2),
+		message:  formatLog(fmt, args...),
+	}
+}
+
+// Warnf log.Warnf("xxxx-%v", "x").Ctx(ctx).Line()
+func Warnf(fmt string, args ...interface{}) *logChain {
+	return &logChain{
+		level:    WarnLevel,
+		funcName: GetFunction(2),
+		message:  formatLog(fmt, args...),
+	}
+}
+
+// Errorf log.Errorf("xxxx-%v", "x").Ctx(ctx).Error(err).Line()
+func Errorf(fmt string, args ...interface{}) *logChain {
+	return &logChain{
+		level:    ErrorLevel,
+		funcName: GetFunction(2),
+		message:  formatLog(fmt, args...),
+	}
+}
+
+// Fatalf log.Fatalf("xxxx-%v", "x").Ctx(ctx).Line()
+func Fatalf(fmt string, args ...interface{}) *logChain {
+	return &logChain{
+		level:    FatalLevel,
+		funcName: GetFunction(2),
+		message:  formatLog(fmt, args...),
 	}
 }

@@ -5,6 +5,7 @@ import "context"
 // OutLogger logger interface
 type OutLogger interface {
 	Write(ctx context.Context, level Level, row string)
+	Close()
 }
 
 var (
