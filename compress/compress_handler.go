@@ -1,6 +1,6 @@
 package compress
 
-type ComoressHandler interface {
+type CompressHandler interface {
 	// encode
 	Encode([]byte) ([]byte, error)
 	// decode
