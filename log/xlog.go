@@ -174,6 +174,7 @@ func (x *xlogImpl) rotate() error {
 		}
 	}
 
+	x.rotateFlag = logSuffix
 	if x.file != nil {
 		filePath := fmt.Sprintf("%v-%v", x.logName, time.Now().Format(logRotateSuffixFormat))
 		if err := os.Rename(x.logName, filePath); err != nil {
