@@ -1,6 +1,7 @@
 package quit
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -32,8 +33,17 @@ func GetQuitEvent() *QuitEvent {
 // QuitEvent quit event struct
 type QuitEvent struct {
 	*Event
+	// closer list to be close
+	closerList []QuitCloser
 	// counts active goroutines for GracefulStop
 	serveWG sync.WaitGroup
+}
+
+// QuitCloser Shutdown
+type QuitCloser interface {
+	// Once Shutdown has been called on a server, it may not be reused;
+	// future calls to methods such as Serve will return ErrServerClosed.
+	Shutdown(ctx context.Context) error
 }
 
 // NewQuitEvent returns a new, ready-to-use Event.
@@ -58,9 +68,20 @@ func (q *QuitEvent) WaitGoroutines() {
 	q.serveWG.Wait()
 }
 
+// AddCloser closer will be called before goroutine quit.
+func (q *QuitEvent) AddCloser(closer QuitCloser) {
+	q.closerList = append(q.closerList, closer)
+}
+
 // GracefulStop Graceful stop all running goroutines.
 func (q *QuitEvent) GracefulStop() {
 	q.Fire()
+	for _, closer := range q.closerList {
+		if closer == nil {
+			continue
+		}
+		_ = closer.Shutdown(context.Background())
+	}
 	q.WaitGoroutines()
 }
 
