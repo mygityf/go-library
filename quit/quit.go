@@ -3,6 +3,7 @@ package quit
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"sync"
@@ -33,8 +34,10 @@ func GetQuitEvent() *QuitEvent {
 // QuitEvent quit event struct
 type QuitEvent struct {
 	*Event
-	// closer list to be close
-	closerList []QuitCloser
+	// quit closer list to be close
+	quitCloserList []QuitCloser
+	// io closer list to be close
+	closerList []io.Closer
 	// counts active goroutines for GracefulStop
 	serveWG sync.WaitGroup
 }
@@ -68,19 +71,30 @@ func (q *QuitEvent) WaitGoroutines() {
 	q.serveWG.Wait()
 }
 
+// AddQuitCloser closer will be called before goroutine quit.
+func (q *QuitEvent) AddQuitCloser(closer QuitCloser) {
+	q.quitCloserList = append(q.quitCloserList, closer)
+}
+
 // AddCloser closer will be called before goroutine quit.
-func (q *QuitEvent) AddCloser(closer QuitCloser) {
+func (q *QuitEvent) AddCloser(closer io.Closer) {
 	q.closerList = append(q.closerList, closer)
 }
 
 // GracefulStop Graceful stop all running goroutines.
 func (q *QuitEvent) GracefulStop() {
 	q.Fire()
-	for _, closer := range q.closerList {
+	for _, closer := range q.quitCloserList {
 		if closer == nil {
 			continue
 		}
 		_ = closer.Shutdown(context.Background())
+	}
+	for _, closer := range q.closerList {
+		if closer == nil {
+			continue
+		}
+		_ = closer.Close()
 	}
 	q.WaitGoroutines()
 }
