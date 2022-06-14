@@ -99,8 +99,8 @@ func (q *QuitEvent) GracefulStop() {
 	q.WaitGoroutines()
 }
 
-// SignalHandler stop signal handle
-func SignalHandler() {
+// WaitSignal stop signal handle
+func WaitSignal() {
 	shutdownHook := make(chan os.Signal, 1)
 	signal.Notify(shutdownHook,
 		syscall.SIGINT,
