@@ -73,18 +73,18 @@ func (q *QuitEvent) WaitGoroutines() {
 	q.serveWG.Wait()
 }
 
-// AddQuitCloser closer will be called before goroutine quit.
-func (q *QuitEvent) AddQuitCloser(closer QuitCloser) {
+// RegisterQuitCloser closer will be called before goroutine quit.
+func (q *QuitEvent) RegisterQuitCloser(closer QuitCloser) {
 	q.quitCloserList = append(q.quitCloserList, closer)
 }
 
-// AddCloser closer will be called before goroutine quit.
-func (q *QuitEvent) AddCloser(closer io.Closer) {
+// RegisterCloser closer will be called before goroutine quit.
+func (q *QuitEvent) RegisterCloser(closer io.Closer) {
 	q.closerList = append(q.closerList, closer)
 }
 
-// AddStopFunc stop func will be called before goroutine quit.
-func (q *QuitEvent) AddStopFunc(stopFunc func()) {
+// RegisterStopFunc stop func will be called before goroutine quit.
+func (q *QuitEvent) RegisterStopFunc(stopFunc func()) {
 	q.stopFuncList = append(q.stopFuncList, stopFunc)
 }
 
@@ -102,7 +102,7 @@ func (q *QuitEvent) GracefulStop() {
 		}
 	}
 	for _, stopFunc := range q.stopFuncList {
-		if stopFunc == nil {
+		if stopFunc != nil {
 			stopFunc()
 		}
 	}
