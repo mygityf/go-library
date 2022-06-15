@@ -88,7 +88,7 @@ func (q *QuitEvent) GracefulStop() {
 		if closer == nil {
 			continue
 		}
-		_ = closer.Shutdown(context.Background())
+		_ = closer.Shutdown(context.TODO())
 	}
 	for _, closer := range q.closerList {
 		if closer == nil {
