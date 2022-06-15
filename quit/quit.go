@@ -38,6 +38,8 @@ type QuitEvent struct {
 	quitCloserList []QuitCloser
 	// io closer list to be close
 	closerList []io.Closer
+	// stop func list
+	stopFuncList []func()
 	// counts active goroutines for GracefulStop
 	serveWG sync.WaitGroup
 }
@@ -81,20 +83,28 @@ func (q *QuitEvent) AddCloser(closer io.Closer) {
 	q.closerList = append(q.closerList, closer)
 }
 
+// AddStopFunc stop func will be called before goroutine quit.
+func (q *QuitEvent) AddStopFunc(stopFunc func()) {
+	q.stopFuncList = append(q.stopFuncList, stopFunc)
+}
+
 // GracefulStop Graceful stop all running goroutines.
 func (q *QuitEvent) GracefulStop() {
 	q.Fire()
 	for _, closer := range q.quitCloserList {
-		if closer == nil {
-			continue
+		if closer != nil {
+			_ = closer.Shutdown(context.TODO())
 		}
-		_ = closer.Shutdown(context.TODO())
 	}
 	for _, closer := range q.closerList {
-		if closer == nil {
-			continue
+		if closer != nil {
+			_ = closer.Close()
 		}
-		_ = closer.Close()
+	}
+	for _, stopFunc := range q.stopFuncList {
+		if stopFunc == nil {
+			stopFunc()
+		}
 	}
 	q.WaitGoroutines()
 }
